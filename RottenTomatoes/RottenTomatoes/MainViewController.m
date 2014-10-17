@@ -13,20 +13,24 @@
 
 
 @interface MainViewController ()
-@property (weak, nonatomic) IBOutlet UITableView *moviesTableView;
+
 @property (strong,nonatomic) NSArray *movies;
 
 @end
 
 @implementation MainViewController
 
+@synthesize isFiltered;
+
 - (void)viewDidLoad {
   [super viewDidLoad];
 
-  
+  self.moviesSearchBar.delegate = self;
+  self.automaticallyAdjustsScrollViewInsets = NO;
   self.moviesTableView.rowHeight = 150;
   self.moviesTableView.delegate = self;
   self.moviesTableView.dataSource = self;
+  self.moviesTableView.backgroundColor = [UIColor blackColor];
   self.title = @"Box Office Movies";
   
   [self.moviesTableView registerNib:[UINib nibWithNibName:@"MovieCell" bundle:nil] forCellReuseIdentifier:@"MovieCell"];
@@ -51,23 +55,66 @@
   
 }
 
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText{
+  
+  if(searchText.length == 0)
+  {
+    isFiltered = FALSE;
+  }
+  else
+  {
+    isFiltered = true;
+    self.filteredTableData = [[NSMutableArray alloc] init];
+    
+    for (NSDictionary *movie in self.movies)
+    {
+      NSString *movieTitle =movie[@"title"];
+      NSString *movieSynopsis =movie[@"synopsis"];
+      NSRange nameRange = [movieTitle rangeOfString:searchText options:NSCaseInsensitiveSearch];
+      NSRange descriptionRange = [movieSynopsis rangeOfString:searchText options:NSCaseInsensitiveSearch];
+      if(nameRange.location != NSNotFound || descriptionRange.location != NSNotFound)
+      {
+        [self.filteredTableData addObject:movie];
+      }
+    }
+  }
+  
+  [self.moviesTableView reloadData];
+  
+}
+
+
 - (void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
   // Dispose of any resources that can be recreated.
 }
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-  return self.movies.count;
+  
+  NSInteger rowCount;
+  if(self.isFiltered)
+    rowCount = self.filteredTableData.count;
+  else
+    rowCount = self.movies.count;
+  return rowCount;
+  
 }
 
 -(UITableViewCell*)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
   
-  
   MovieCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MovieCell"];
-  NSDictionary *movie = self.movies[indexPath.row];
+  NSDictionary *movie = [[NSDictionary alloc] init];
+  if(isFiltered){
+    movie = [self.filteredTableData objectAtIndex:indexPath.row];
+  }
+  else{
+     movie = [self.movies objectAtIndex:indexPath.row];
+  }
+  
+  //movie = self.movies[indexPath.row];
   NSDictionary *poster = movie[@"posters"];
   NSString *posterURL = poster[@"detailed"];
-  posterURL = [posterURL stringByReplacingOccurrencesOfString:@"tmb" withString:@"ori"];
+  //posterURL = [posterURL stringByReplacingOccurrencesOfString:@"tmb" withString:@"ori"];
   cell.movieTitleLabel.text = movie[@"title"];
   cell.movieSynopsisLabel.text = movie[@"synopsis"];
   [cell.moviePosterImage setImageWithURL:[NSURL URLWithString:posterURL]];
@@ -77,14 +124,24 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
   
-  [tableView deselectRowAtIndexPath:indexPath animated:NO];
+  [self.moviesSearchBar resignFirstResponder];
+  [tableView deselectRowAtIndexPath:indexPath animated:YES];
   MovieDetail *movieDetail = [[MovieDetail alloc]init];
-  NSDictionary *movie = self.movies[indexPath.row];
+  
+  NSDictionary *movie = [[NSDictionary alloc] init];
+  if(isFiltered){
+    movie = [self.filteredTableData objectAtIndex:indexPath.row];
+  }
+  else{
+    movie = [self.movies objectAtIndex:indexPath.row];
+  }
+
+  //NSDictionary *movie = self.movies[indexPath.row];
   NSString *posterURL = movie[@"posters"][@"detailed"];
   movieDetail.posterURL = [posterURL stringByReplacingOccurrencesOfString:@"tmb" withString:@"ori"];
   
   [self.navigationController pushViewController:movieDetail animated:YES];
-  
+
 }
 
 

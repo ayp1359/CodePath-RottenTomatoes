@@ -100,17 +100,17 @@
 			children = (
 				3FB73A3919F09A39002428B7 /* AppDelegate.h */,
 				3FB73A3A19F09A39002428B7 /* AppDelegate.m */,
+				3FB73A4219F09A39002428B7 /* Images.xcassets */,
+				3FB73A4419F09A39002428B7 /* LaunchScreen.xib */,
 				3FB73A5B19F0AD23002428B7 /* MainViewController.h */,
 				3FB73A5C19F0AD23002428B7 /* MainViewController.m */,
-				3FB73A6519F0F171002428B7 /* MovieDetail.h */,
-				3FB73A6619F0F171002428B7 /* MovieDetail.m */,
-				3FB73A6719F0F171002428B7 /* MovieDetail.xib */,
+				3FB73A5D19F0AD23002428B7 /* MainViewController.xib */,
 				3FB73A6019F0B189002428B7 /* MovieCell.h */,
 				3FB73A6119F0B189002428B7 /* MovieCell.m */,
 				3FB73A6219F0B189002428B7 /* MovieCell.xib */,
-				3FB73A5D19F0AD23002428B7 /* MainViewController.xib */,
-				3FB73A4219F09A39002428B7 /* Images.xcassets */,
-				3FB73A4419F09A39002428B7 /* LaunchScreen.xib */,
+				3FB73A6519F0F171002428B7 /* MovieDetail.h */,
+				3FB73A6619F0F171002428B7 /* MovieDetail.m */,
+				3FB73A6719F0F171002428B7 /* MovieDetail.xib */,
 				3FB73A3519F09A39002428B7 /* Supporting Files */,
 			);
 			path = RottenTomatoes;
