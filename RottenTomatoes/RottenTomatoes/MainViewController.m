@@ -10,9 +10,12 @@
 #import "MovieCell.h"
 #import "UIImageView+AFNetworking.h"
 #import "MovieDetail.h"
+#import "AFNetworking.h"
 
-
-@interface MainViewController ()
+@interface MainViewController (){
+  UIView *networkErrorView;
+  UILabel *networkErrorLabel;
+}
 
 @property (strong,nonatomic) NSArray *movies;
 
@@ -31,24 +34,51 @@
   self.moviesTableView.delegate = self;
   self.moviesTableView.dataSource = self;
   self.moviesTableView.backgroundColor = [UIColor blackColor];
-  self.title = @"Box Office Movies";
+  self.title = @"Movies";
   
   [self.moviesTableView registerNib:[UINib nibWithNibName:@"MovieCell" bundle:nil] forCellReuseIdentifier:@"MovieCell"];
    
   
   NSString *url = @"http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=y6968ys33bjkmvw5jmf4jp84";
   NSURLRequest  *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+  
+  
+//  AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+//  operation.responseSerializer = [AFJSONResponseSerializer serializer];
+//  
+//  [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+//    
+//    id object  = (NSDictionary *)responseObject;
+//    self.movies = object[@"movies"];
+//    [self.moviesTableView reloadData];
+//    NSLog(@"%@",object);
+//    
+//    
+//  } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+//    
+// 
+//    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Error Retrieving Weather"
+//                                                        message:[error localizedDescription]
+//                                                       delegate:nil
+//                                              cancelButtonTitle:@"Ok"
+//                                              otherButtonTitles:nil];
+//    [alertView show];
+//  }];
+//  
+  
+  
   [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue currentQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError)
    {
      if (connectionError)
      {
        NSLog(@"ERROR CONNECTING DATA FROM SERVER: %@", connectionError.localizedDescription);
+       [self handleConnectionError:connectionError];
      }
      else{
        id object  = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
        self.movies = object[@"movies"];
        [self.moviesTableView reloadData];
-       NSLog(@"%@",object);
+       //NSLog(@"%@",object);
      }
      
    }];
@@ -139,11 +169,31 @@
   //NSDictionary *movie = self.movies[indexPath.row];
   NSString *posterURL = movie[@"posters"][@"detailed"];
   movieDetail.posterURL = [posterURL stringByReplacingOccurrencesOfString:@"tmb" withString:@"ori"];
-  
-  [self.navigationController pushViewController:movieDetail animated:YES];
+  movieDetail.title = movie[@"title"];
+  movieDetail.movieSynopsisString = movie[@"synopsis"];
 
+  [self.navigationController pushViewController:movieDetail animated:YES];
+  self.navigationController.navigationBar.topItem.title = @"Movies";
+  
 }
 
+- (void)handleConnectionError:(NSError *)error {
+  
+  NSError *underlyingError = [[error userInfo] objectForKey:NSUnderlyingErrorKey];
+  
+  networkErrorView = [[UIView alloc] initWithFrame:CGRectMake(0, 60, 320, 40)];
+  networkErrorView.backgroundColor = [UIColor lightGrayColor];
+  networkErrorView.alpha = .85;
+  
+  networkErrorLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 12, 300, 20)];
+  networkErrorLabel.text = [underlyingError localizedDescription];
+  [networkErrorLabel setTextColor:[UIColor whiteColor]];
+  [networkErrorLabel setTextAlignment:NSTextAlignmentCenter];
+  
+  [networkErrorView addSubview:networkErrorLabel];
+  [self.view addSubview:networkErrorView];
+  
+}
 
 /*
  #pragma mark - Navigation

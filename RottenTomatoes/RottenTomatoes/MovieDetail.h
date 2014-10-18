@@ -9,7 +9,12 @@
 #import <UIKit/UIKit.h>
 
 @interface MovieDetail : UIViewController
+
+@property (weak, nonatomic) IBOutlet UILabel *movieTitleLabel;
 @property (weak, nonatomic) IBOutlet UIImageView *movieDetailPoster;
 @property (weak,nonatomic) NSString *posterURL;
+@property (weak, nonatomic) IBOutlet UILabel *movieSynopsisLabel;
+@property (weak,nonatomic) NSString *movieSynopsisString;
+@property (weak, nonatomic) IBOutlet UIScrollView *movieScrollView;
 
 @end
