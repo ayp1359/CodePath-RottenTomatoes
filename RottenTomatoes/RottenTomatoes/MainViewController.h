@@ -9,9 +9,12 @@
 #import <UIKit/UIKit.h>
 
 @interface MainViewController : UIViewController<UITableViewDelegate,UITableViewDataSource,UISearchBarDelegate>
+
 @property (weak, nonatomic) IBOutlet UISearchBar *moviesSearchBar;
 @property (weak, nonatomic) IBOutlet UITableView *moviesTableView;
 @property (strong, nonatomic) NSMutableArray* allTableData;
 @property (strong, nonatomic) NSMutableArray* filteredTableData;
 @property (nonatomic, assign) bool isFiltered;
+@property (nonatomic,strong) NSString *APIurl;
+
 @end

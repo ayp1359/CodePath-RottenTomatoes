@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2A975797BC58AC6DB531A693"
+               BlueprintIdentifier = "3C921BFD776A7797D3CC4BA2"
                BuildableName = "libPods-RottenTomatoes.a"
                BlueprintName = "Pods-RottenTomatoes"
                ReferencedContainer = "container:Pods.xcodeproj">

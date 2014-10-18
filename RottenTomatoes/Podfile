@@ -6,6 +6,7 @@ source 'https://github.com/CocoaPods/Specs.git'
 target 'RottenTomatoes' do
 platform:ios,"7.0"
 pod 'AFNetworking'
+pod 'MBProgressHUD'
 end
 
 target 'RottenTomatoesTests' do

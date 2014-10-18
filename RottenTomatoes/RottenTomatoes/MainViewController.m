@@ -10,14 +10,19 @@
 #import "MovieCell.h"
 #import "UIImageView+AFNetworking.h"
 #import "MovieDetail.h"
-#import "AFNetworking.h"
+#import "MBProgressHUD.h"
 
-@interface MainViewController (){
+@interface MainViewController ()<MBProgressHUDDelegate> {
   UIView *networkErrorView;
   UILabel *networkErrorLabel;
+  MBProgressHUD *HUD;
+  
+  
 }
 
 @property (strong,nonatomic) NSArray *movies;
+@property (strong,nonatomic) NSMutableData  *incomingData;
+@property (strong,nonatomic) UIRefreshControl *refreshControl;
 
 @end
 
@@ -27,7 +32,11 @@
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-
+  UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
+  [refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
+  self.refreshControl = refreshControl;
+  [self.moviesTableView addSubview:refreshControl];
+  self.incomingData = [[NSMutableData alloc]init];
   self.moviesSearchBar.delegate = self;
   self.automaticallyAdjustsScrollViewInsets = NO;
   self.moviesTableView.rowHeight = 150;
@@ -35,58 +44,51 @@
   self.moviesTableView.dataSource = self;
   self.moviesTableView.backgroundColor = [UIColor blackColor];
   self.title = @"Movies";
-  
   [self.moviesTableView registerNib:[UINib nibWithNibName:@"MovieCell" bundle:nil] forCellReuseIdentifier:@"MovieCell"];
-   
-  
-  NSString *url = @"http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=y6968ys33bjkmvw5jmf4jp84";
-  NSURLRequest  *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
-  
-  
-//  AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
-//  operation.responseSerializer = [AFJSONResponseSerializer serializer];
-//  
-//  [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
-//    
-//    id object  = (NSDictionary *)responseObject;
-//    self.movies = object[@"movies"];
-//    [self.moviesTableView reloadData];
-//    NSLog(@"%@",object);
-//    
-//    
-//  } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-//    
-// 
-//    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Error Retrieving Weather"
-//                                                        message:[error localizedDescription]
-//                                                       delegate:nil
-//                                              cancelButtonTitle:@"Ok"
-//                                              otherButtonTitles:nil];
-//    [alertView show];
-//  }];
-//  
-  
-  
-  [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue currentQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError)
-   {
-     if (connectionError)
-     {
-       NSLog(@"ERROR CONNECTING DATA FROM SERVER: %@", connectionError.localizedDescription);
-       [self handleConnectionError:connectionError];
-     }
-     else{
-       id object  = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-       self.movies = object[@"movies"];
-       [self.moviesTableView reloadData];
-       //NSLog(@"%@",object);
-     }
-     
-   }];
-  
+  self.APIurl = @"http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=y6968ys33bjkmvw5jmf4jp84";
+  [self loadRottenTomatoesMovies:self.APIurl];
 }
 
+-(void)loadRottenTomatoesMovies:(NSString*)url{
+  NSURLRequest  *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+  NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+  [connection start];
+  HUD = [MBProgressHUD showHUDAddedTo:self.navigationController.view animated:YES];
+  HUD.labelText = @"Loading...";
+  HUD.delegate = self;
+}
+
+-(void)refresh{
+  [self loadRottenTomatoesMovies:self.APIurl];
+  [self.refreshControl endRefreshing];
+}
+
+#pragma mark - NSURLConnection Delegate Methods
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+  [self.incomingData appendData:data];
+}
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
+{
+  self.incomingData = nil;
+  [self handleConnectionError:error];
+  [HUD hide:YES];
+}
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+{
+  [HUD hide:YES];
+  if (self.incomingData){
+    id object  = [NSJSONSerialization JSONObjectWithData:self.incomingData  options:0 error:nil];
+    self.movies = object[@"movies"];
+    [self.moviesTableView reloadData];
+    // NSLog(@"%@",object);
+  }
+  self.incomingData = nil;
+}
+
+
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText{
-  
   if(searchText.length == 0)
   {
     isFiltered = FALSE;
@@ -110,7 +112,6 @@
   }
   
   [self.moviesTableView reloadData];
-  
 }
 
 
@@ -120,25 +121,22 @@
 }
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-  
   NSInteger rowCount;
   if(self.isFiltered)
     rowCount = self.filteredTableData.count;
   else
     rowCount = self.movies.count;
   return rowCount;
-  
 }
 
 -(UITableViewCell*)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-  
   MovieCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MovieCell"];
   NSDictionary *movie = [[NSDictionary alloc] init];
   if(isFiltered){
     movie = [self.filteredTableData objectAtIndex:indexPath.row];
   }
   else{
-     movie = [self.movies objectAtIndex:indexPath.row];
+    movie = [self.movies objectAtIndex:indexPath.row];
   }
   
   //movie = self.movies[indexPath.row];
@@ -153,7 +151,6 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
-  
   [self.moviesSearchBar resignFirstResponder];
   [tableView deselectRowAtIndexPath:indexPath animated:YES];
   MovieDetail *movieDetail = [[MovieDetail alloc]init];
@@ -165,13 +162,13 @@
   else{
     movie = [self.movies objectAtIndex:indexPath.row];
   }
-
+  
   //NSDictionary *movie = self.movies[indexPath.row];
   NSString *posterURL = movie[@"posters"][@"detailed"];
   movieDetail.posterURL = [posterURL stringByReplacingOccurrencesOfString:@"tmb" withString:@"ori"];
   movieDetail.title = movie[@"title"];
   movieDetail.movieSynopsisString = movie[@"synopsis"];
-
+  
   [self.navigationController pushViewController:movieDetail animated:YES];
   self.navigationController.navigationBar.topItem.title = @"Movies";
   
@@ -182,12 +179,13 @@
   NSError *underlyingError = [[error userInfo] objectForKey:NSUnderlyingErrorKey];
   
   networkErrorView = [[UIView alloc] initWithFrame:CGRectMake(0, 60, 320, 40)];
-  networkErrorView.backgroundColor = [UIColor lightGrayColor];
-  networkErrorView.alpha = .85;
+  networkErrorView.backgroundColor = [UIColor darkGrayColor];
+  networkErrorView.alpha = 1;
   
   networkErrorLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 12, 300, 20)];
   networkErrorLabel.text = [underlyingError localizedDescription];
   [networkErrorLabel setTextColor:[UIColor whiteColor]];
+  [networkErrorLabel setFont:[UIFont systemFontOfSize:12]];
   [networkErrorLabel setTextAlignment:NSTextAlignmentCenter];
   
   [networkErrorView addSubview:networkErrorLabel];
