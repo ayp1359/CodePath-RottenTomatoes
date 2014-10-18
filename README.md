@@ -31,7 +31,7 @@ Time spent: 10 hours
 
 Credits
 ---------
-* GIF created with [LiceCap](http://www.cockos.com/licecap/).
+* GIF created with [LiceCap](http://www.cockos.com/licecap/)
 * [Rotten Tomatoes API](http://developer.rottentomatoes.com/docs/read/JSON)
 * [AFNetworking](https://github.com/AFNetworking/AFNetworking)
 * [MBProgressHUD](https://github.com/jdg/MBProgressHUD)
