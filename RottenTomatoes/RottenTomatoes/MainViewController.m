@@ -32,6 +32,10 @@
 
 - (void)viewDidLoad {
   [super viewDidLoad];
+  UITapGestureRecognizer *gestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(hideKeyboard)];
+  [self.moviesTableView addGestureRecognizer:gestureRecognizer];
+  gestureRecognizer.cancelsTouchesInView = NO;
+  
   UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
   [refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
   self.refreshControl = refreshControl;
@@ -47,6 +51,12 @@
   [self.moviesTableView registerNib:[UINib nibWithNibName:@"MovieCell" bundle:nil] forCellReuseIdentifier:@"MovieCell"];
   self.APIurl = @"http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=y6968ys33bjkmvw5jmf4jp84";
   [self loadRottenTomatoesMovies:self.APIurl];
+}
+
+- (void) hideKeyboard {
+  if([self.moviesSearchBar isFirstResponder]){
+    [self.view endEditing:YES];
+  }
 }
 
 -(void)loadRottenTomatoesMovies:(NSString*)url{
